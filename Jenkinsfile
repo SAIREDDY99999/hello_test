@@ -1,18 +1,30 @@
 pipeline {
-    agent any
-    
+    agent {
+        docker {
+            image 'maven:3.9.0'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
     stages {
-        // Define your stages here
         stage('Build') {
             steps {
-                // Define build steps
+                sh 'mvn -B -DskipTests clean package'
             }
         }
         stage('Test') {
             steps {
-                // Define test steps
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
             }
         }
-        // Add more stages as needed
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+            }
+        }
     }
 }
